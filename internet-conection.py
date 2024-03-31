@@ -126,13 +126,27 @@ class InternetConnectionPlugin(plugins.Plugin):
             return False
         
     def invert(self):
-        with open("/etc/pwnagotchi/config.toml", "r") as f:
-            config = f.readlines()
+        try:
+            with open("/etc/pwnagotchi/config.toml", "r") as f:
+                config = f.readlines()
+        except FileNotFoundError:
+            logging.warning("Internet-Connection: Config File not found")
+            return False
+        except EOFError:
+            pass
+        
         for line in config:
-            line.strip()
-            if "ui.invert = true" or "ui.invert = True" or "ui.invert = TRUE" in line:
-                return True
-            elif "ui.invert = false" or "ui.invert = False" or "ui.invert = FALSE" in line:
-                return False
-            else:
-                return False
+            line = line.strip()
+            line = line.strip('\n')
+            if "ui.invert = true" in line or "ui.invert = false" in line or "ui.invert = True" in line or "ui.invert = False" in line or "ui.invert=TRUE" in line or "ui.invert=FALSE" in line:
+
+                if line.find("ui.invert = true") != -1:
+                    logging.info("Internet-Connection: Screen Invert True")
+                    return True
+                    
+                elif line.find("ui.invert = false") != -1:
+                    logging.info("Internet-Connection: Screen Invert False")
+                    return False
+        
+        logging.info("Internet-Connection: Screen Invert Error")
+        return False
